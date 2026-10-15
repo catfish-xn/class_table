@@ -108,15 +108,15 @@ test('改课费：生效日期及之后的课重算，之前的课不变；之�
   assert.deepEqual(fees, { '2026-10-13': 150, '2026-10-15': 150, '2026-10-20': 180, '2026-10-27': 180 });
 
   // 生效日期之前补排的课仍按旧课费
-  const before = await ok('POST', '/api/lessons', { date: '2026-10-16', start: '14:00', end: '16:00', student_id: zhang });
-  assert.equal(before.lesson.fee, 150);
+  const earlier = await ok('POST', '/api/lessons', { date: '2026-10-16', start: '14:00', end: '16:00', student_id: zhang });
+  assert.equal(earlier.lesson.fee, 150);
   const afterL = await ok('POST', '/api/lessons', { date: '2026-10-21', start: '14:00', end: '16:00', student_id: zhang });
   assert.equal(afterL.lesson.fee, 180);
   // 移到生效日期之前的日期，课费跟着日期走
   const moved = await ok('PATCH', `/api/lessons/${afterL.lesson.id}`, { date: '2026-10-14' });
   assert.equal(moved.lesson.fee, 150);
   await ok('DELETE', `/api/lessons/${afterL.lesson.id}`);
-  await ok('DELETE', `/api/lessons/${before.lesson.id}`);
+  await ok('DELETE', `/api/lessons/${earlier.lesson.id}`);
 
   // 撤销这次改价
   const data = await ok('GET', '/api/bootstrap');
