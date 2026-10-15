@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "class-table",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  // 前端静态页面（public/），/api/* 之外的请求直接由静态资源返回
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  // D1 数据库，代码里通过 env.DB 访问。
+  // 部署前用 `npx wrangler d1 create class_table` 创建数据库，把返回的 database_id 填到这里
+  // （如果部署平台会自动分配 D1，保持 binding 名为 DB 即可）。
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "class_table",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": { "enabled": true }
+}
