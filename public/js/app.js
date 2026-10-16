@@ -180,6 +180,10 @@ window.addEventListener('pagehide', () => flushAll());
 
 setSaveErrorHandler(() => resync(week.currentWeek(), currentStudentId()));
 subscribe(render);
+// 每分钟刷新一次课表页（今日倒计时、今天/过去的日期）
+setInterval(() => {
+  if (state.ready && document.visibilityState === 'visible' && parseRoute().name === 'week') render();
+}, 60_000);
 window.addEventListener('hashchange', onRoute);
 
 /* ---------- 启动 ---------- */
