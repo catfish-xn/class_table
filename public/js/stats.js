@@ -3,7 +3,8 @@ import * as api from './api.js';
 import { icon } from './icons.js';
 import { state, org, grade, student, changed } from './store.js';
 import { toast } from './ui.js';
-import { html, today, nowTime, monthOf, addMonths, monthLabel, yuan, num, sum, initial } from './util.js';
+import { openExport } from './report.js';
+import { html, today, nowTime, monthOf, addMonths, monthLabel, parseDate, yuan, num, sum, initial } from './util.js';
 
 const view = { month: null, data: null, open: new Set() };
 
@@ -36,13 +37,31 @@ export function render() {
     <header class="page-head">
       <div class="month-nav">
         <button type="button" class="icon-btn" data-act="month" data-d="-1" aria-label="上个月">${icon('left')}</button>
-        <h1 class="num">${monthLabel(month)}</h1>
+        <div class="month-title">
+          <h1 class="num">${monthLabel(month)}</h1>
+          <div class="wh-sub">
+            <span>${relativeMonth(month)}</span>
+            ${isCurrent ? '' : html`<button type="button" class="link-btn" data-act="month-now">回到本月</button>`}
+          </div>
+        </div>
         <button type="button" class="icon-btn" data-act="month" data-d="1" aria-label="下个月">${icon('right')}</button>
       </div>
-      ${isCurrent ? '' : html`<button type="button" class="btn" data-act="month-now">回到本月</button>`}
+      <button type="button" class="btn primary" data-act="export" ${d && d.lessons.length ? '' : 'disabled'}>
+        ${icon('image')}<span>导出图片</span>
+      </button>
     </header>
     ${d ? body(d) : html`<div class="skeleton" style="height:150px;border-radius:26px"></div><div class="skeleton"></div>`}
   </section>`;
+}
+
+function relativeMonth(month) {
+  const [y1, m1] = monthOf(today()).split('-').map(Number);
+  const [y2, m2] = month.split('-').map(Number);
+  const n = (y2 - y1) * 12 + (m2 - m1);
+  if (n === 0) return '本月';
+  if (n === -1) return '上个月';
+  if (n === 1) return '下个月';
+  return n < 0 ? `${-n} 个月前` : `${n} 个月后`;
 }
 
 function body(d) {
@@ -57,9 +76,10 @@ function body(d) {
   // 按学员
   const byStudent = new Map();
   for (const l of normal) {
-    const r = byStudent.get(l.student_id) || { id: l.student_id, count: 0, fee: 0 };
+    const r = byStudent.get(l.student_id) || { id: l.student_id, count: 0, fee: 0, days: [] };
     r.count++;
     r.fee += l.fee;
+    r.days.push(parseDate(l.date).getDate());
     byStudent.set(l.student_id, r);
   }
   const students = [...byStudent.values()].sort((a, b) => b.fee - a.fee || b.count - a.count);
@@ -135,11 +155,17 @@ function orgRow(o, total) {
     <div class="ostat-students">
       ${o.students.map(
         (r) => html`<div class="ss-row">
-          <span class="ss-name">${student(r.id)?.name ?? '（已删除）'}</span>
+          <span class="ss-name">
+            ${student(r.id)?.name ?? '（已删除）'}
+            <small class="ss-days num">${r.days.join('、')} 日</small>
+          </span>
           <span class="ss-count num">${r.count} 节</span>
           <span class="ss-fee num">${yuan(r.fee)}</span>
         </div>`,
       )}
+      <button type="button" class="btn sm ss-export" data-act="export" data-org="${o.id}">
+        ${icon('image')}<span>导出这个机构的统计图片</span>
+      </button>
     </div>
   </div>`;
 }
@@ -159,6 +185,11 @@ function studentRow(r) {
 }
 
 export const actions = {
+  export: (el) => {
+    const d = view.data?.month === view.month ? view.data : null;
+    if (!d || !d.lessons.length) return toast('这个月还没有课，没有可导出的内容');
+    openExport({ month: d.month, lessons: d.lessons, orgId: el.dataset.org ? Number(el.dataset.org) : null });
+  },
   month: (el) => {
     location.hash = `#/stats/${addMonths(view.month, Number(el.dataset.d))}`;
   },

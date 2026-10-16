@@ -24,6 +24,7 @@ import {
   html,
   raw,
   today,
+  nowTime,
   addDays,
   mondayOf,
   parseDate,
@@ -102,7 +103,7 @@ export function render() {
         </div>
       </header>
 
-      ${reminders()} ${state.students.length ? '' : onboarding()}
+      ${isCurrent && lessons && state.students.length ? todayStrip(lessons) : ''} ${reminders()} ${state.students.length ? '' : onboarding()}
 
       <nav class="daystrip" aria-label="选择日期">
         ${dates.map((d, i) => {
@@ -144,6 +145,49 @@ function onboarding() {
         <span class="ob-step"><span class="ob-n">3</span>排课</span>
       </div>
     </div>
+  </div>`;
+}
+
+const span = (mins) => {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return h ? (m ? `${h} 小时 ${m} 分` : `${h} 小时`) : `${m} 分钟`;
+};
+
+/** 今日提示：正在上 / 下一节课和倒计时 */
+function todayStrip(lessons) {
+  const t = today();
+  const now = toMin(nowTime());
+  const list = lessons.filter((l) => l.date === t && l.status === 'normal');
+  const total = sum(list, (l) => l.fee);
+  const ongoing = list.find((l) => toMin(l.start) <= now && now < toMin(l.end));
+  const next = list.find((l) => toMin(l.start) > now);
+  const who = (l) => student(l.student_id)?.name ?? '';
+  const c = (l) => org(student(l.student_id)?.org_id)?.color || 'slate';
+
+  let main;
+  let target = null;
+  if (ongoing) {
+    target = ongoing;
+    main = html`<b>正在上课</b> · ${who(ongoing)} <span class="num">${ongoing.start}–${ongoing.end}</span>
+      <span class="ts-count">还剩 ${span(toMin(ongoing.end) - now)}</span>`;
+  } else if (next) {
+    target = next;
+    main = html`<b>下一节</b> <span class="num">${next.start}</span> ${who(next)}
+      <span class="ts-count">还有 ${span(toMin(next.start) - now)}</span>`;
+  } else if (list.length) {
+    main = html`<b>今天的课都上完了</b> · 辛苦了`;
+  } else {
+    main = html`<b>今天没有课</b> · 好好休息`;
+  }
+  return html`<div
+    class="today-strip ${target ? 'is-link' : ''}"
+    data-c="${target ? c(target) : 'blue'}"
+    ${raw(target ? `data-act="open-lesson" data-id="${target.id}" role="button" tabindex="0"` : '')}
+  >
+    <span class="ts-icon">${icon(target ? 'clock' : 'sun')}</span>
+    <div class="ts-main">${main}</div>
+    <div class="ts-side num">今天 ${list.length} 节${list.length ? ` · ${yuan(total)}` : ''}</div>
   </div>`;
 }
 

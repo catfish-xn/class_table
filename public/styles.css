@@ -33,8 +33,13 @@
   --glass: rgba(243, 244, 247, 0.82);
   --glass-2: rgba(255, 255, 255, 0.86);
 
-  --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.05);
-  --shadow-2: 0 2px 6px rgba(16, 24, 40, 0.05), 0 10px 24px rgba(16, 24, 40, 0.07);
+  --shadow-1: 0 0 0 1px rgba(16, 24, 40, 0.035), 0 1px 2px rgba(16, 24, 40, 0.04), 0 2px 6px rgba(16, 24, 40, 0.03);
+  --shadow-2: 0 0 0 1px rgba(16, 24, 40, 0.04), 0 4px 10px rgba(16, 24, 40, 0.06), 0 14px 30px rgba(16, 24, 40, 0.08);
+  --glow-1: rgba(62, 107, 242, 0.11);
+  --glow-2: rgba(138, 102, 234, 0.09);
+  --glow-3: rgba(20, 162, 150, 0.06);
+  --primary-grad: linear-gradient(180deg, #5b84f8 0%, #3e6bf2 100%);
+  --primary-grad-hover: linear-gradient(180deg, #4f79f5 0%, #2f5ae0 100%);
   --shadow-3: 0 16px 48px rgba(16, 24, 40, 0.18), 0 2px 8px rgba(16, 24, 40, 0.06);
 
   --topbar-h: 62px;
@@ -71,7 +76,12 @@
     --glass: rgba(13, 15, 19, 0.8);
     --glass-2: rgba(23, 26, 32, 0.86);
 
-    --shadow-1: 0 0 0 1px rgba(255, 255, 255, 0.04);
+    --shadow-1: 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --glow-1: rgba(112, 150, 255, 0.12);
+    --glow-2: rgba(171, 144, 255, 0.08);
+    --glow-3: rgba(52, 200, 185, 0.05);
+    --primary-grad: linear-gradient(180deg, #7a9cff 0%, #5479f2 100%);
+    --primary-grad-hover: linear-gradient(180deg, #86a6ff 0%, #5f83f5 100%);
     --shadow-2: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 10px 24px rgba(0, 0, 0, 0.35);
     --shadow-3: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 20px 60px rgba(0, 0, 0, 0.6);
   }
@@ -126,7 +136,12 @@ body {
   font-size: 15px;
   line-height: 1.5;
   color: var(--text);
-  background: var(--bg);
+  background:
+    radial-gradient(1000px 520px at -5% -12%, var(--glow-1), transparent 70%),
+    radial-gradient(820px 460px at 105% -8%, var(--glow-2), transparent 70%),
+    radial-gradient(700px 420px at 50% 115%, var(--glow-3), transparent 70%),
+    var(--bg);
+  background-attachment: scroll;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
@@ -290,6 +305,7 @@ h3 {
 .nav a.active {
   background: var(--accent-soft);
   color: var(--accent-ink);
+  box-shadow: inset 0 0 0 1px rgba(62, 107, 242, 0.12);
 }
 
 .topbar-note {
@@ -352,14 +368,14 @@ main {
 }
 
 .btn.primary {
-  background: var(--accent);
+  background: var(--primary-grad);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 3px 10px rgba(62, 107, 242, 0.28);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 4px 12px rgba(62, 107, 242, 0.3);
 }
 
 .btn.primary:hover {
-  background: var(--accent-2);
+  background: var(--primary-grad-hover);
 }
 
 .btn.danger {
@@ -1127,7 +1143,8 @@ input[type='time'].input {
 }
 
 .day.is-today {
-  box-shadow: var(--shadow-1), inset 0 0 0 1.5px var(--accent-soft);
+  background: linear-gradient(180deg, var(--accent-soft) 0, var(--surface) 160px);
+  box-shadow: var(--shadow-1), inset 0 0 0 1.5px rgba(62, 107, 242, 0.22);
 }
 
 .day-head {
@@ -2571,9 +2588,13 @@ input[type='time'].input {
   gap: 10px;
 }
 
-.month-nav h1 {
-  min-width: 140px;
+.month-title {
+  min-width: 150px;
   text-align: center;
+}
+
+.month-title .wh-sub {
+  justify-content: center;
 }
 
 .hero {
@@ -2595,6 +2616,21 @@ input[type='time'].input {
   height: 220px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  bottom: -90px;
+  left: 38%;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.hero > * {
+  position: relative;
 }
 
 .hero-label {
@@ -3074,6 +3110,117 @@ input[type='time'].input {
   color: var(--text-3);
 }
 
+/* ============ 今日提示 ============ */
+
+.today-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 11px 16px 11px 11px;
+  border-radius: 18px;
+  background: linear-gradient(115deg, var(--c-soft) 0%, var(--surface) 78%);
+  box-shadow: var(--shadow-1);
+  outline: none;
+  animation: slide-in 0.35s ease-out;
+}
+
+.today-strip.is-link {
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+@media (hover: hover) {
+  .today-strip.is-link:hover {
+    box-shadow: var(--shadow-2);
+    transform: translateY(-1px);
+  }
+}
+
+.today-strip:focus-visible {
+  box-shadow: 0 0 0 2px var(--c);
+}
+
+.ts-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--c);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(16, 24, 40, 0.12);
+}
+
+.ts-main {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-2);
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+
+.ts-main b {
+  color: var(--text);
+}
+
+.ts-count {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  margin-left: 4px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--c-ink);
+  font-size: 12.5px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.ts-side {
+  color: var(--text-3);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* ============ 导出图片 ============ */
+
+.export-preview {
+  max-height: 56vh;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--surface-3);
+  overscroll-behavior: contain;
+}
+
+.export-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.12);
+  -webkit-touch-callout: default;
+}
+
+.ss-days {
+  display: block;
+  color: var(--text-3);
+  font-size: 12px;
+  white-space: normal;
+}
+
+.ss-row {
+  padding: 6px 0;
+}
+
+.ss-export {
+  width: 100%;
+  margin: 8px 0 6px;
+}
+
 /* ============ 轻提示 ============ */
 
 #toasts {
@@ -3469,12 +3616,28 @@ input[type='time'].input {
   }
 
   .tabbar a .i {
-    width: 23px;
-    height: 23px;
+    width: 56px;
+    height: 30px;
+    padding: 4px 17px;
+    border-radius: 999px;
+    transition: background 0.2s, color 0.2s;
   }
 
   .tabbar a.active {
+    color: var(--accent-ink);
+  }
+
+  .tabbar a.active .i {
+    background: var(--accent-soft);
     color: var(--accent);
+  }
+
+  .ts-side {
+    display: none;
+  }
+
+  .today-strip {
+    padding: 10px 12px 10px 10px;
   }
 
   .daystrip {
@@ -3660,8 +3823,12 @@ input[type='time'].input {
     font-size: 38px;
   }
 
-  .month-nav h1 {
+  .month-title {
     min-width: 0;
+  }
+
+  .page-head .btn.primary {
+    padding: 0 12px;
   }
 
   .profile {
